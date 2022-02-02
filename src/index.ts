@@ -1,35 +1,59 @@
-import { Command } from './command';
+import { Command, ValidOptionList, Handler } from './command';
 import { Option } from './option';
+import { Description } from './util';
 
-type ParseResult = {
-    command: string;
-    commandArgs: string[];
-    options: string[];
-    optionArgs: string[][];
-    errors: { type: string; target?: string; detail: string }[];
-};
+export interface ParseResult {
+    readonly command: string;
+    readonly commandArgs: string[];
+    readonly options: string[];
+    readonly optionArgs: string[][];
+    readonly errors: { type: string; target?: string; detail: string }[];
+}
 
 export class Litargs {
     private static readonly _SENTINEL = '---';
     private static _commandMap: Map<string, Command> = new Map();
     private static _isValid = false;
-    private static parseResult: ParseResult;
+    private static _parseResult: ParseResult;
 
-    static command(name: string, argumentCount: number) {
+    static command(
+        name: string,
+        argumentCount: number,
+        description: Description,
+        handler?: Handler
+    ) {
         if (this._commandMap.has(name))
             throw new Error(`Redefinition of command '${name}'`);
-        this._commandMap.set(name, new Command(name, argumentCount));
+        this._commandMap.set(
+            name,
+            new Command(name, argumentCount, description, handler)
+        );
         return this;
     }
 
-    static option(name: string, argumentCount: number) {
+    static option(
+        name: string,
+        argumentCount: number,
+        description: Description
+    ) {
         // Option refers to the last command added.
         const lastCommandName = Array.from(this._commandMap.keys()).at(-1);
         if (!lastCommandName) throw new Error('No command is specified');
         this._commandMap
             .get(lastCommandName)
-            ?.pushOption(new Option(name, argumentCount));
+            ?.pushOption(new Option(name, argumentCount, description));
         return this;
+    }
+
+    private static help() {
+        const commandHelpMessages = Array.from(this._commandMap.values()).map(
+            (command) => command.help()
+        );
+        const errors = this._parseResult.errors.map((error) => error.detail);
+        const helpMessage = `\nCommands:\n${commandHelpMessages.join(
+            '\n\n'
+        )}\n\n${errors.length ? `Errors:\n${errors.join('\n')}` : ''}\n`;
+        console.log(helpMessage);
     }
 
     static parse(argument: string = process.argv.slice(2).join(' ')) {
@@ -47,10 +71,14 @@ export class Litargs {
         if (!targetCommand) {
             parseResult.errors.push({
                 type: 'ReferenceError',
-                detail: `No defined command '${commandName}'`,
+                detail: `${
+                    commandName
+                        ? `No defined command '${commandName}'`
+                        : 'Nothing has been specified'
+                }`,
             });
-            this.parseResult = parseResult;
-            return this.parseResult;
+            this._parseResult = parseResult;
+            return this._parseResult;
         }
         // Scan the registered options in order.
         for (const targetOption of targetCommand.optionMap.values()) {
@@ -60,9 +88,9 @@ export class Litargs {
             );
             if (targetOptionIndex === -1) continue;
             // Copy as many arguments as expected from the target option.
-            const [, ...tmpTargetOptionArgs] = args.slice(
+            const [, ...tmpTargetOptionArgs] = [...args].splice(
                 targetOptionIndex,
-                targetOption.argumentCount + targetOptionIndex + 1
+                targetOption.argumentCount + 1
             );
             // Push a terminating character.
             tmpTargetOptionArgs.push(this._SENTINEL);
@@ -77,7 +105,7 @@ export class Litargs {
                     : targetOption.argumentCount;
             const [optionName, ...optionArgs] = args.splice(
                 targetOptionIndex,
-                actualArgumentCount + targetOptionIndex + 1
+                actualArgumentCount + 1
             );
             optionArgs.push(
                 ...new Array(
@@ -107,6 +135,7 @@ export class Litargs {
             });
         // The remaining Args are the arguments to the command.
         const validCommandArgs = [...args];
+        parseResult.commandArgs.push(...validCommandArgs);
         // Checking for errors. Detects too many arguments.
         const invalidCommandArgs =
             validCommandArgs.length > targetCommand.argumentCount
@@ -119,11 +148,33 @@ export class Litargs {
                   ]
                 : [];
         parseResult.errors.push(...[...invalidCommandArgs, ...invalidOptions]);
-        this.parseResult = parseResult;
+        this._parseResult = parseResult;
         // If there are no errors, tell the class that it has completed successfully.
-        if (!this.parseResult.errors.length) this._isValid = true;
-        return this.parseResult;
+        if (!this._parseResult.errors.length) this._isValid = true;
+        return this._parseResult;
+    }
+
+    static execute() {
+        if (!this._isValid) {
+            this.help();
+            return;
+            //throw new Error('Execution will be possible after parsing');
+        }
+        if (!this._parseResult) return;
+        const targetCommand = this._commandMap.get(this._parseResult.command);
+        if (!targetCommand) return;
+        const args = [...this._parseResult.commandArgs];
+        const options: ValidOptionList = this._parseResult.options.reduce(
+            (prev, option, index) => {
+                return (prev = {
+                    ...prev,
+                    [option]: this._parseResult.optionArgs[index].length
+                        ? this._parseResult.optionArgs[index]
+                        : true,
+                });
+            },
+            {}
+        );
+        targetCommand.execute(args, options);
     }
 }
-
-Litargs.command('test', 1).option('a', 2).option('b', 3).parse();
