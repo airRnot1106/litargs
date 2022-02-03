@@ -1,12 +1,24 @@
 {
     "name": "litargs",
-    "version": "0.1.0",
-    "description": "",
-    "main": "index.js",
+    "version": "0.0.1",
+    "description": "Lite argument parser",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "files": [
+        "dist"
+    ],
     "scripts": {
+        "start": "dist/index.js",
+        "build": "tsc",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
-    "keywords": [],
+    "keywords": [
+        "cli",
+        "argument",
+        "args",
+        "parser",
+        "command"
+    ],
     "author": "airRnot1106 <yngw.rintaro@gmail.com>",
     "license": "MIT",
     "devDependencies": {
