@@ -110,14 +110,14 @@ export class Litargs {
     }
 
     /**
-     * Parses the string passed as argument. If nothing is specified, process.args is specified.
+     * Parses the string passed as argument.
      *
      * @static
      * @param {string} [argument=process.argv.slice(2).join(' ')]
      * @return {*}
      * @memberof Litargs
      */
-    static parse(argument: string = process.argv.slice(2).join(' ')) {
+    static parse(argument: string) {
         const splittedArgs = argument.split(' ');
         const [commandName, ...args] = splittedArgs;
         // Initializing the results
@@ -165,7 +165,7 @@ export class Litargs {
                 tmpTargetOptionLength < targetOption.argumentCount
                     ? tmpTargetOptionLength
                     : targetOption.argumentCount;
-            const [optionName, ...optionArgs] = args.splice(
+            const [, ...optionArgs] = args.splice(
                 targetOptionIndex,
                 actualArgumentCount + 1
             );
@@ -174,7 +174,7 @@ export class Litargs {
                     targetOption.argumentCount - actualArgumentCount
                 ).fill('')
             );
-            parseResult.options.push(optionName);
+            parseResult.options.push(targetOption.name);
             parseResult.optionArgs.push(optionArgs);
         }
         // Checking for errors. Detect duplicate and unregistered options.
