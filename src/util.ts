@@ -1,13 +1,33 @@
+/**
+ * Interface for command and option descriptions.
+ *
+ * @export
+ * @interface Description
+ */
 export interface Description {
     args?: string[];
     detail: string;
 }
 
+/**
+ * Superclasses for commands and options.
+ *
+ * @export
+ * @abstract
+ * @class Util
+ */
 export abstract class Util {
     protected _name;
     protected _argumentCount;
     protected _description;
 
+    /**
+     * Creates an instance of Util.
+     * @param {string} name
+     * @param {number} argumentCount
+     * @param {Description} description
+     * @memberof Util
+     */
     constructor(name: string, argumentCount: number, description: Description) {
         this._name = name;
         this._argumentCount = argumentCount;
@@ -26,5 +46,12 @@ export abstract class Util {
         return this._description;
     }
 
+    /**
+     * Display descriptions of commands and options.
+     *
+     * @abstract
+     * @return {*}  {string}
+     * @memberof Util
+     */
     abstract help(): string;
 }

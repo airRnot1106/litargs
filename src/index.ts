@@ -10,6 +10,12 @@ export interface ParseResult {
     readonly errors: { type: string; target?: string; detail: string }[];
 }
 
+/**
+ * Main class, set the command and options and parse arguments.
+ *
+ * @export
+ * @class Litargs
+ */
 export class Litargs {
     private static _commandMap: Map<string, Command> = new Map([
         [
@@ -33,6 +39,17 @@ export class Litargs {
         errors: [],
     };
 
+    /**
+     * Set a command.
+     *
+     * @static
+     * @param {string} name
+     * @param {number} argumentCount
+     * @param {Description} description
+     * @param {Handler} [handler]
+     * @return {*}
+     * @memberof Litargs
+     */
     static command(
         name: string,
         argumentCount: number,
@@ -48,6 +65,17 @@ export class Litargs {
         return this;
     }
 
+    /**
+     * Set a option. Applies to the last command added.
+     * The optional prefix will be -; if argumentCount is set to 0, the prefix will be --.
+     *
+     * @static
+     * @param {string} name
+     * @param {number} argumentCount
+     * @param {Description} description
+     * @return {*}
+     * @memberof Litargs
+     */
     static option(
         name: string,
         argumentCount: number,
@@ -55,12 +83,21 @@ export class Litargs {
     ) {
         // Option refers to the last command added.
         const lastCommandName = Array.from(this._commandMap.keys()).at(-1);
+        if (!lastCommandName || lastCommandName === 'help')
+            throw new Error('No command is specified');
         this._commandMap
             .get(lastCommandName)
             ?.pushOption(new Option(name, argumentCount, description));
         return this;
     }
 
+    /**
+     * Displays a list of commands and options. If there is an error in the parsing result, it will also be displayed.
+     *
+     * @static
+     * @memberof Litargs
+     * @override
+     */
     static help() {
         const commandHelpMessages = Array.from(this._commandMap.values()).map(
             (command) => command.help()
@@ -72,6 +109,14 @@ export class Litargs {
         console.log(helpMessage);
     }
 
+    /**
+     * Parses the string passed as argument. If nothing is specified, process.args is specified.
+     *
+     * @static
+     * @param {string} [argument=process.argv.slice(2).join(' ')]
+     * @return {*}
+     * @memberof Litargs
+     */
     static parse(argument: string = process.argv.slice(2).join(' ')) {
         const splittedArgs = argument.split(' ');
         const [commandName, ...args] = splittedArgs;
@@ -171,6 +216,13 @@ export class Litargs {
         return this._parseResult;
     }
 
+    /**
+     * Executes the handler for the specified command. If there is an error in the result of parsing, execute help.
+     *
+     * @static
+     * @return {*}
+     * @memberof Litargs
+     */
     static execute() {
         if (!this._isValid) {
             this.help();
