@@ -55,7 +55,6 @@ export class Litargs {
     ) {
         // Option refers to the last command added.
         const lastCommandName = Array.from(this._commandMap.keys()).at(-1);
-        if (!lastCommandName) throw new Error('No command is specified');
         this._commandMap
             .get(lastCommandName)
             ?.pushOption(new Option(name, argumentCount, description));
