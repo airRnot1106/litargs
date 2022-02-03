@@ -11,7 +11,9 @@ export class Option extends Util {
 
     help(): string {
         const helpMessage = `${this.actualName}\t${
-            this._description.args ? `[${this._description.args}]` : '\t'
+            this._description.args
+                ? `[${this._description.args.join(', ')}]`
+                : '\t'
         }\t${this._description.detail}`;
         return helpMessage;
     }

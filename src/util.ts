@@ -1,5 +1,5 @@
 export interface Description {
-    args?: string;
+    args?: string[];
     detail: string;
 }
 

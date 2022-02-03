@@ -33,7 +33,9 @@ export class Command extends Util {
             (option) => option.help()
         );
         const helpMessage = `${this.name}\t${
-            this._description.args ? `[${this._description.args}]` : '\t'
+            this._description.args
+                ? `[${this._description.args.join(', ')}]`
+                : '\t'
         }\t${this._description.detail}\n${
             optionHelpMessages.length
                 ? `\tOptions:\n\t${optionHelpMessages.join('\n\t')}`
