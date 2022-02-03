@@ -11,7 +11,6 @@ export interface ParseResult {
 }
 
 export class Litargs {
-    private static readonly _SENTINEL = '---';
     private static _commandMap: Map<string, Command> = new Map();
     private static _isValid = false;
     private static _parseResult: ParseResult;
@@ -93,7 +92,8 @@ export class Litargs {
                 targetOption.argumentCount + 1
             );
             // Push a terminating character.
-            tmpTargetOptionArgs.push(this._SENTINEL);
+            const SENTINEL = '---';
+            tmpTargetOptionArgs.push(SENTINEL);
             // The number of arguments until the next option appears.
             const tmpTargetOptionLength = tmpTargetOptionArgs.findIndex(
                 (optionArg) => optionArg.startsWith('-')
