@@ -6,7 +6,7 @@
 
 ---
 
-![typescript](https://img.shields.io/badge/-Typescript-007ACC.svg?logo=typescript&style=popout) ![node.js](https://img.shields.io/badge/-Node.js-333333.svg?logo=node.js&style=popout) ![npm](https://img.shields.io/badge/-Npm-CB3837.svg?logo=npm&style=popout")![npm](https://img.shields.io/npm/dt/litargs) [![GitHub issues](https://img.shields.io/github/issues/airRnot1106/litargs)](https://github.com/airRnot1106/litargs/issues) [![GitHub forks](https://img.shields.io/github/forks/airRnot1106/litargs)](https://github.com/airRnot1106/litargs/network) [![GitHub stars](https://img.shields.io/github/stars/airRnot1106/litargs)](https://github.com/airRnot1106/litargs/stargazers) [![GitHub license](https://img.shields.io/github/license/airRnot1106/litargs)](https://github.com/airRnot1106/litargs/blob/main/LICENSE)
+![typescript](https://img.shields.io/badge/-Typescript-007ACC.svg?logo=typescript&style=popout) ![node.js](https://img.shields.io/badge/-Node.js-333333.svg?logo=node.js&style=popout) ![npm](https://img.shields.io/badge/-Npm-CB3837.svg?logo=npm&style=popout") ![npm](https://img.shields.io/npm/dt/litargs) [![GitHub issues](https://img.shields.io/github/issues/airRnot1106/litargs)](https://github.com/airRnot1106/litargs/issues) [![GitHub forks](https://img.shields.io/github/forks/airRnot1106/litargs)](https://github.com/airRnot1106/litargs/network) [![GitHub stars](https://img.shields.io/github/stars/airRnot1106/litargs)](https://github.com/airRnot1106/litargs/stargazers) [![GitHub license](https://img.shields.io/github/license/airRnot1106/litargs)](https://github.com/airRnot1106/litargs/blob/main/LICENSE)
 
 **_Would you like to parse arguments more easily?_**
 
