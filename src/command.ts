@@ -16,7 +16,6 @@ export class Command extends Util {
         argumentCount: number,
         description: Description,
         handler: Handler = () => {
-            throw new Error('No function is available');
         }
     ) {
         super(name, argumentCount, description);
