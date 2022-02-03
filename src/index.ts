@@ -13,7 +13,13 @@ export interface ParseResult {
 export class Litargs {
     private static _commandMap: Map<string, Command> = new Map();
     private static _isValid = false;
-    private static _parseResult: ParseResult;
+    private static _parseResult: ParseResult = {
+        command: '',
+        commandArgs: [],
+        options: [],
+        optionArgs: [],
+        errors: [],
+    };
 
     static command(
         name: string,
