@@ -1,6 +1,8 @@
 # Litargs
 
-<div style="text-align: center;"><img src="https://user-images.githubusercontent.com/62370527/152301970-a7d67d2e-1e3b-4780-9c20-34035d726a0b.svg"></div>
+<div align="center">
+  <img src="https://user-images.githubusercontent.com/62370527/152301970-a7d67d2e-1e3b-4780-9c20-34035d726a0b.svg">
+</div>
 
 ---
 
@@ -10,10 +12,10 @@
 
 ## Highlights:flashlight:
 
-- The easiest CLI command line parser
-- Recommended for those who want simple parsing results
-- Easy to set options
-- Automatically create help
+-   The easiest CLI command line parser
+-   Recommended for those who want simple parsing results
+-   Easy to set options
+-   Automatically create help
 
 ## Install
 
@@ -23,7 +25,7 @@ npm install litargs
 
 ## Usage
 
-- index.js
+-   index.js
 
 ```javascript
 //Example of a command to move a file
@@ -31,30 +33,30 @@ const { Litargs } = require('litargs');
 const fs = require('fs');
 
 Litargs.command(
-  'move',
-  2,
-  { args: ['source', 'destination'], detail: 'Move a file' },
-  (args, option) => {
-    if (option.cp) {
-      fs.copyFileSync(args[0], args[1]);
-    } else {
-      fs.renameSync(args[0], args[1]);
+    'move',
+    2,
+    { args: ['source', 'destination'], detail: 'Move a file' },
+    (args, option) => {
+        if (option.cp) {
+            fs.copyFileSync(args[0], args[1]);
+        } else {
+            fs.renameSync(args[0], args[1]);
+        }
     }
-  }
 )
-  .option('cp', 0, { detail: 'copy' })
-  .parse(process.argv.slice(2).join(' '));
+    .option('cp', 0, { detail: 'copy' })
+    .parse(process.argv.slice(2).join(' '));
 
 Litargs.execute();
 ```
 
-- Command Line
+-   Command Line
 
 ```sh
 $ node index.js move /Users/hoge.txt /Users/fuga.txt --cp
 ```
 
-- help
+-   help
 
 ```sh
 Commands:
@@ -64,7 +66,7 @@ help                    Display a list of commands and options
 move    [source, destination]   Move a file
         Options:
         --cp                    copy
-        
+
 ```
 
 ## API
@@ -97,9 +99,9 @@ If you find a bug or problem, please open an issue!:bug:
 
 ## Author
 
-- Github: [airRnot1106](https://github.com/airRnot1106)
-- NPM: [airrnot1106](https://www.npmjs.com/~airrnot1106)
-- Twitter: [@airRnot1106](https://twitter.com/airRnot1106)
+-   Github: [airRnot1106](https://github.com/airRnot1106)
+-   NPM: [airrnot1106](https://www.npmjs.com/~airrnot1106)
+-   Twitter: [@airRnot1106](https://twitter.com/airRnot1106)
 
 ## LICENSE
 
