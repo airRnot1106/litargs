@@ -175,7 +175,6 @@ export class Litargs {
         if (!this._isValid) {
             this.help();
             return;
-            //throw new Error('Execution will be possible after parsing');
         }
         if (!this._parseResult) return;
         const targetCommand = this._commandMap.get(this._parseResult.command);
