@@ -11,7 +11,19 @@ export interface ParseResult {
 }
 
 export class Litargs {
-    private static _commandMap: Map<string, Command> = new Map();
+    private static _commandMap: Map<string, Command> = new Map([
+        [
+            'help',
+            new Command(
+                'help',
+                0,
+                { detail: 'Display a list of commands and options' },
+                () => {
+                    Litargs.help();
+                }
+            ),
+        ],
+    ]);
     private static _isValid = false;
     private static _parseResult: ParseResult = {
         command: '',
@@ -50,7 +62,7 @@ export class Litargs {
         return this;
     }
 
-    private static help() {
+    static help() {
         const commandHelpMessages = Array.from(this._commandMap.values()).map(
             (command) => command.help()
         );
