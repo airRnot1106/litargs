@@ -67,6 +67,8 @@ export class Litargs {
         description: Description,
         handler?: Handler
     ) {
+        if (name.startsWith('-'))
+            throw new Error("The name cannot start with '-'");
         if (this._commandMap.has(name))
             throw new Error(`Redefinition of command '${name}'`);
         this._commandMap.set(
@@ -92,6 +94,8 @@ export class Litargs {
         argumentCount: number,
         description: Description
     ) {
+        if (name.startsWith('-'))
+            throw new Error("The name cannot start with '-'");
         // Option refers to the last command added.
         const lastCommandName = Array.from(this._commandMap.keys()).at(-1);
         if (!lastCommandName || lastCommandName === 'help')
