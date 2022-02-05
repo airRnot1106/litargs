@@ -1,20 +1,20 @@
 import { Option } from './option';
-import { Description, Util } from './util';
+import { Description, CommandLine } from './commandLine';
+import { CommandArgs, OptionArgs, ParsePiece } from '.';
 
-export interface ValidOptionList {
-    [option: string]: string[] | boolean;
-}
-
-export type Handler = (args?: string[], option?: ValidOptionList) => unknown;
+export type Handler = (
+    args: ParsePiece<CommandArgs>['args'],
+    option: { [option: string]: ParsePiece<OptionArgs> }
+) => unknown;
 
 /**
  * Class of command.
  *
  * @export
  * @class Command
- * @extends {Util}
+ * @extends {CommandLine}
  */
-export class Command extends Util {
+export class Command extends CommandLine {
     private _optionMap: Map<string, Option>;
     private _handler: Handler;
 
@@ -88,7 +88,10 @@ export class Command extends Util {
      * @return {*}
      * @memberof Command
      */
-    execute(args: string[], option: ValidOptionList) {
+    execute(
+        args: ParsePiece<CommandArgs>['args'],
+        option: { [option: string]: ParsePiece<OptionArgs> }
+    ) {
         return this._handler(args, option);
     }
 }

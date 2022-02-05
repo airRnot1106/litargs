@@ -1,13 +1,26 @@
-import { Command, ValidOptionList, Handler } from './command';
+import { Command, Handler } from './command';
 import { Option } from './option';
-import { Description } from './util';
+import { Description } from './commandLine';
+
+type ErrorType = 'ReferenceError' | 'ArgumentError' | 'DuplicateError';
+
+export type CommandArgs = string[];
+export type OptionArgs = string[] | boolean;
+
+export interface ParsePiece<T> {
+    name: string;
+    args: T;
+}
+
+interface ErrorPiece {
+    type: ErrorType;
+    detail: string;
+}
 
 export interface ParseResult {
-    readonly command: string;
-    readonly commandArgs: string[];
-    readonly options: string[];
-    readonly optionArgs: string[][];
-    readonly errors: { type: string; target?: string; detail: string }[];
+    command: ParsePiece<CommandArgs>[];
+    option: ParsePiece<OptionArgs>[];
+    errors: ErrorPiece[];
 }
 
 /**
@@ -32,10 +45,8 @@ export class Litargs {
     ]);
     private static _isValid = false;
     private static _parseResult: ParseResult = {
-        command: '',
-        commandArgs: [],
-        options: [],
-        optionArgs: [],
+        command: [],
+        option: [],
         errors: [],
     };
 
@@ -56,6 +67,8 @@ export class Litargs {
         description: Description,
         handler?: Handler
     ) {
+        if (name.startsWith('-'))
+            throw new Error("The name cannot start with '-'");
         if (this._commandMap.has(name))
             throw new Error(`Redefinition of command '${name}'`);
         this._commandMap.set(
@@ -81,6 +94,8 @@ export class Litargs {
         argumentCount: number,
         description: Description
     ) {
+        if (name.startsWith('-'))
+            throw new Error("The name cannot start with '-'");
         // Option refers to the last command added.
         const lastCommandName = Array.from(this._commandMap.keys()).at(-1);
         if (!lastCommandName || lastCommandName === 'help')
@@ -113,22 +128,18 @@ export class Litargs {
      * Parses the string passed as argument.
      *
      * @static
-     * @param {string} [argument=process.argv.slice(2).join(' ')]
+     * @param {string} argument
      * @return {*}
      * @memberof Litargs
      */
     static parse(argument: string) {
-        const splittedArgs = argument.split(' ');
-        const [commandName, ...args] = splittedArgs;
-        // Initializing the results
+        const [commandName, ...args] = argument.split(/ +/);
+        const targetCommand = this._commandMap.get(commandName);
         const parseResult: ParseResult = {
-            command: commandName,
-            commandArgs: [],
-            options: [],
-            optionArgs: [],
+            command: [],
+            option: [],
             errors: [],
         };
-        const targetCommand = this._commandMap.get(commandName);
         if (!targetCommand) {
             parseResult.errors.push({
                 type: 'ReferenceError',
@@ -138,82 +149,67 @@ export class Litargs {
                         : 'Nothing has been specified'
                 }`,
             });
-            this._parseResult = parseResult;
-            return this._parseResult;
+            return parseResult;
         }
-        // Scan the registered options in order.
-        for (const targetOption of targetCommand.optionMap.values()) {
-            // Index of target options in args
-            const targetOptionIndex = args.findIndex(
-                (arg) => arg === targetOption.actualName
-            );
-            if (targetOptionIndex === -1) continue;
-            // Copy as many arguments as expected from the target option.
-            const [, ...tmpTargetOptionArgs] = [...args].splice(
-                targetOptionIndex,
-                targetOption.argumentCount + 1
-            );
-            // Push a terminating character.
-            const SENTINEL = '---';
-            tmpTargetOptionArgs.push(SENTINEL);
-            // The number of arguments until the next option appears.
-            const tmpTargetOptionLength = tmpTargetOptionArgs.findIndex(
-                (optionArg) => optionArg.startsWith('-')
-            );
-            // The number of arguments actually specified. If an argument is missing, fill it with undefined.
-            const actualArgumentCount =
-                tmpTargetOptionLength < targetOption.argumentCount
-                    ? tmpTargetOptionLength
-                    : targetOption.argumentCount;
-            const [, ...optionArgs] = args.splice(
-                targetOptionIndex,
-                actualArgumentCount + 1
-            );
-            optionArgs.push(
-                ...new Array(
-                    targetOption.argumentCount - actualArgumentCount
-                ).fill('')
-            );
-            parseResult.options.push(targetOption.name);
-            parseResult.optionArgs.push(optionArgs);
+        const parseResultArray = [[commandName]];
+        let targetOption: Option | undefined;
+        for (const arg of args) {
+            const lastOption = parseResultArray.at(-1);
+            if (!lastOption) throw new Error('Serious parsing error');
+            if (arg.startsWith('-')) {
+                parseResultArray.push([arg]);
+                targetOption = targetCommand.optionMap.get(
+                    arg.replace(/^-+/, '')
+                );
+            } else if (
+                targetOption &&
+                targetOption.argumentCount > lastOption.length - 1
+            ) {
+                lastOption?.push(arg);
+            } else {
+                parseResultArray[0].push(arg);
+            }
         }
-        // Checking for errors. Detect duplicate and unregistered options.
-        const invalidOptions = args
-            .filter((arg) => arg.startsWith('-'))
-            .map((invalidOption) => {
-                if (parseResult.options.includes(invalidOption)) {
-                    return {
-                        type: 'DuplicateError',
-                        target: invalidOption,
-                        detail: `Duplicate ${commandName} option '${invalidOption}'`,
-                    };
-                } else {
-                    return {
-                        type: 'ReferenceError',
-                        target: invalidOption,
-                        detail: `No defined ${commandName} option '${invalidOption}'`,
-                    };
-                }
+        const [commandArray, ...optionArray] = parseResultArray;
+        const [, ...commandArgs] = commandArray;
+        const missingArgumentCount = Math.max(
+            targetCommand.argumentCount - commandArgs.length,
+            0
+        );
+        commandArgs.push(...new Array(missingArgumentCount).fill(''));
+        parseResult.command.push({ name: commandName, args: commandArgs });
+        if (targetCommand.argumentCount - commandArgs.length < 0) {
+            parseResult.errors.push({
+                type: 'ArgumentError',
+                detail: `Too many arguments for command '${commandName}', expected ${targetCommand.argumentCount} argument, have ${commandArgs.length} arguments`,
             });
-        // The remaining Args are the arguments to the command.
-        const validCommandArgs = [...args];
-        parseResult.commandArgs.push(...validCommandArgs);
-        // Checking for errors. Detects too many arguments.
-        const invalidCommandArgs =
-            validCommandArgs.length > targetCommand.argumentCount
-                ? [
-                      {
-                          type: 'ArgumentError',
-                          target: commandName,
-                          detail: `Too many arguments for command '${commandName}', expected ${targetCommand.argumentCount} argument, have ${validCommandArgs.length} arguments`,
-                      },
-                  ]
-                : [];
-        parseResult.errors.push(...[...invalidCommandArgs, ...invalidOptions]);
+        }
+        const optionPieces: ParsePiece<OptionArgs>[] = optionArray.map(
+            (array) => {
+                const [prefixedName, ...args] = array;
+                const name = prefixedName.replace(/-+/, '');
+                const targetOption = targetCommand.optionMap.get(name);
+                if (!targetOption) {
+                    parseResult.errors.push({
+                        type: 'ReferenceError',
+                        detail: `No defined ${commandName} option '${prefixedName}'`,
+                    });
+                    return { name: name, args: false };
+                }
+                const isFlg = targetOption.argumentCount < 1;
+                if (isFlg) return { name: name, args: true };
+                const missingArgumentCount = Math.max(
+                    targetOption.argumentCount - args.length,
+                    0
+                );
+                args.push(...new Array(missingArgumentCount).fill(''));
+                return { name: name, args: args };
+            }
+        );
+        parseResult.option = optionPieces;
         this._parseResult = parseResult;
-        // If there are no errors, tell the class that it has completed successfully.
         if (!this._parseResult.errors.length) this._isValid = true;
-        return this._parseResult;
+        return parseResult;
     }
 
     /**
@@ -229,20 +225,18 @@ export class Litargs {
             return;
         }
         if (!this._parseResult) return;
-        const targetCommand = this._commandMap.get(this._parseResult.command);
-        if (!targetCommand) return;
-        const args = [...this._parseResult.commandArgs];
-        const options: ValidOptionList = this._parseResult.options.reduce(
-            (prev, option, index) => {
-                return (prev = {
-                    ...prev,
-                    [option]: this._parseResult.optionArgs[index].length
-                        ? this._parseResult.optionArgs[index]
-                        : true,
-                });
-            },
-            {}
+        const targetCommand = this._commandMap.get(
+            this._parseResult.command[0].name
         );
-        targetCommand.execute(args, options);
+        if (!targetCommand) return;
+        targetCommand.execute(
+            this._parseResult.command[0].args,
+            Object.assign(
+                {},
+                ...this._parseResult.option.map((option) => {
+                    return { [option.name]: option.args };
+                })
+            )
+        );
     }
 }
