@@ -117,6 +117,14 @@ export class Litargs {
         console.log(helpMessage);
     }
 
+    /**
+     * Parses the string passed as argument.
+     *
+     * @static
+     * @param {string} argument
+     * @return {*}
+     * @memberof Litargs
+     */
     static parse(argument: string) {
         const [commandName, ...args] = argument.split(/ +/);
         const targetCommand = this._commandMap.get(commandName);
