@@ -16,7 +16,7 @@ export interface Description {
  * @abstract
  * @class Util
  */
-export abstract class Util {
+export abstract class CommandLine {
     protected _name;
     protected _argumentCount;
     protected _description;
