@@ -71,7 +71,7 @@ move    [source, destination]   Move a file
 
 ## API
 
-#### Litargs.command(`name<string>`, `argumentCount<number>`, `description<{args?: string[], detail: string}>`, `handler<Function>`)
+#### Litargs.command(`name<string>`, `argumentCount<number>`, `description<{args?: string[], detail: string}>`, `handler<(args<string>, option<{[optionName: string]: string[]|boolean>}): unknown>`)
 
 Add the command. Arguments are the name of the command, the number of arguments, a description of the command, and the function to be executed. The handler can accept arguments and options. For description, set the name of the argument in args and a concrete description in detail. If the expected number of arguments is 0, there is no need to set args.
 
