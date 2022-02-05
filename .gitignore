@@ -147,3 +147,4 @@ dist
 # Custom
 .history
 .misc
+src/__tests__/*.txt
