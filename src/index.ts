@@ -4,9 +4,12 @@ import { Description } from './commandLine';
 
 type ErrorType = 'ReferenceError' | 'ArgumentError' | 'DuplicateError';
 
-export interface ParsePiece {
+export type CommandArgs = string[];
+export type OptionArgs = string[] | boolean;
+
+export interface ParsePiece<T> {
     name: string;
-    args: string[] | boolean;
+    args: T;
 }
 
 interface ErrorPiece {
@@ -15,8 +18,8 @@ interface ErrorPiece {
 }
 
 export interface ParseResult {
-    command: ParsePiece[];
-    option: ParsePiece[];
+    command: ParsePiece<CommandArgs>[];
+    option: ParsePiece<OptionArgs>[];
     errors: ErrorPiece[];
 }
 
@@ -177,26 +180,28 @@ export class Litargs {
                 detail: `Too many arguments for command '${commandName}', expected ${targetCommand.argumentCount} argument, have ${commandArgs.length} arguments`,
             });
         }
-        const optionPieces: ParsePiece[] = optionArray.map((array) => {
-            const [prefixedName, ...args] = array;
-            const name = prefixedName.replace(/-+/, '');
-            const targetOption = targetCommand.optionMap.get(name);
-            if (!targetOption) {
-                parseResult.errors.push({
-                    type: 'ReferenceError',
-                    detail: `No defined ${commandName} option '${prefixedName}'`,
-                });
-                return { name: name, args: false };
+        const optionPieces: ParsePiece<OptionArgs>[] = optionArray.map(
+            (array) => {
+                const [prefixedName, ...args] = array;
+                const name = prefixedName.replace(/-+/, '');
+                const targetOption = targetCommand.optionMap.get(name);
+                if (!targetOption) {
+                    parseResult.errors.push({
+                        type: 'ReferenceError',
+                        detail: `No defined ${commandName} option '${prefixedName}'`,
+                    });
+                    return { name: name, args: false };
+                }
+                const isFlg = targetOption.argumentCount < 1;
+                if (isFlg) return { name: name, args: true };
+                const missingArgumentCount = Math.max(
+                    targetOption.argumentCount - args.length,
+                    0
+                );
+                args.push(...new Array(missingArgumentCount).fill(''));
+                return { name: name, args: args };
             }
-            const isFlg = targetOption.argumentCount < 1;
-            if (isFlg) return { name: name, args: true };
-            const missingArgumentCount = Math.max(
-                targetOption.argumentCount - args.length,
-                0
-            );
-            args.push(...new Array(missingArgumentCount).fill(''));
-            return { name: name, args: args };
-        });
+        );
         parseResult.option = optionPieces;
         this._parseResult = parseResult;
         if (!this._parseResult.errors.length) this._isValid = true;
@@ -222,7 +227,12 @@ export class Litargs {
         if (!targetCommand) return;
         targetCommand.execute(
             this._parseResult.command[0].args,
-            this._parseResult.option
+            Object.assign(
+                {},
+                ...this._parseResult.option.map((option) => {
+                    return { [option.name]: option.args };
+                })
+            )
         );
     }
 }
