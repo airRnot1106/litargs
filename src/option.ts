@@ -1,13 +1,13 @@
-import { Description, Util } from './util';
+import { Description, CommandLine } from './commandLine';
 
 /**
  * Class of option.
  *
  * @export
  * @class Option
- * @extends {Util}
+ * @extends {CommandLine}
  */
-export class Option extends Util {
+export class Option extends CommandLine {
     /**
      * Creates an instance of Option.
      * @param {string} name
