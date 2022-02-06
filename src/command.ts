@@ -4,7 +4,7 @@ import { CommandArgs, OptionArgs, ParsePiece } from '.';
 
 export type Handler = (
     args: ParsePiece<CommandArgs>['args'],
-    option: { [option: string]: ParsePiece<OptionArgs> }
+    option: { [option: string]: ParsePiece<OptionArgs>['args'] }
 ) => unknown;
 
 /**
@@ -90,7 +90,7 @@ export class Command extends CommandLine {
      */
     execute(
         args: ParsePiece<CommandArgs>['args'],
-        option: { [option: string]: ParsePiece<OptionArgs> }
+        option: { [option: string]: ParsePiece<OptionArgs>['args'] }
     ) {
         return this._handler(args, option);
     }
