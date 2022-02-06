@@ -14,6 +14,7 @@ Litargs.command(
         }
     }
 )
+    .alias('m')
     .option('cp', 0, { detail: 'copy' })
     .parse(process.argv.slice(2).join(' '));
 

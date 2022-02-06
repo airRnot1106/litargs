@@ -85,6 +85,10 @@ Litargs.command(...).option(...).option(...).command(...).option(...)...
 
 The option method will be applied to the last command added. The basic settings are the same as for the command method. Options that require arguments are prefixed with "-", and options that do not require arguments are prefixed with "--". This does not need to be attached to "name", but it is required on the command line.
 
+#### Litargs.alias(`name<string>`)
+
+The alias method will be applied to the last command added. You can give different names to the commands.
+
 #### Litargs.parse(`parsedString<string>`)
 
 Add this to the end of the method chain. For use with the node.js cli, specify `process.argv.slice(2).join(' ')`. This method returns a simple parsing result.
