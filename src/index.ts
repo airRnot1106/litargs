@@ -71,10 +71,28 @@ export class Litargs {
             throw new Error("The name cannot start with '-'");
         if (this._commandMap.has(name))
             throw new Error(`Redefinition of command '${name}'`);
+        if (argumentCount !== (description.args?.length ?? 0))
+            throw new Error(
+                'The number of arguments does not match the number of description'
+            );
         this._commandMap.set(
             name,
             new Command(name, argumentCount, description, handler)
         );
+        return this;
+    }
+
+    static alias(name: string) {
+        if (name.startsWith('-'))
+            throw new Error("The name cannot start with '-'");
+        const lastCommandName = Array.from(this._commandMap.keys()).at(-1);
+        if (!lastCommandName || lastCommandName === 'help')
+            throw new Error('No command is specified');
+        if (this._commandMap.has(name))
+            throw new Error(`Redefinition of alias '${name}'`);
+        const lastCommand = this._commandMap.get(lastCommandName);
+        if (!lastCommand) throw new Error('Not found command');
+        this._commandMap.set(name, lastCommand);
         return this;
     }
 
@@ -100,6 +118,10 @@ export class Litargs {
         const lastCommandName = Array.from(this._commandMap.keys()).at(-1);
         if (!lastCommandName || lastCommandName === 'help')
             throw new Error('No command is specified');
+        if (argumentCount !== (description.args?.length ?? 0))
+            throw new Error(
+                'The number of arguments does not match the number of description'
+            );
         this._commandMap
             .get(lastCommandName)
             ?.pushOption(new Option(name, argumentCount, description));
@@ -114,9 +136,11 @@ export class Litargs {
      * @override
      */
     static help() {
-        const commandHelpMessages = Array.from(this._commandMap.values()).map(
-            (command) => command.help()
-        );
+        const commandHelpMessages = Array.from(this._commandMap.values())
+            .filter((command, index, array) => {
+                return array.indexOf(command) === index;
+            })
+            .map((command) => command.help());
         const errors = this._parseResult.errors.map((error) => error.detail);
         const helpMessage = `\nCommands:\n${commandHelpMessages.join(
             '\n\n'
@@ -229,7 +253,7 @@ export class Litargs {
             this._parseResult.command[0].name
         );
         if (!targetCommand) return;
-        targetCommand.execute(
+        return targetCommand.execute(
             this._parseResult.command[0].args,
             Object.assign(
                 {},
