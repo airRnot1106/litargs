@@ -142,9 +142,9 @@ export class Litargs {
             })
             .map((command) => command.help());
         const errors = this._parseResult.errors.map((error) => error.detail);
-        const helpMessage = `\nCommands:\n${commandHelpMessages.join(
+        const helpMessage = `\nCommands:\n\n${commandHelpMessages.join(
             '\n\n'
-        )}\n\n${errors.length ? `Errors:\n${errors.join('\n')}` : ''}\n`;
+        )}${errors.length ? `\n\nErrors:\n${errors.join('\n')}` : ''}\n`;
         console.log(helpMessage);
     }
 
